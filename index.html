@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProResume Builder</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;700&family=Montserrat:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Inter', sans-serif; background: #0f172a; }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+    /* Animated gradient background */
+    .hero-gradient {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    }
+
+    /* Form inputs */
+    .form-input {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #e2e8f0;
+      font-size: 13px;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .form-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .form-input::placeholder { color: #475569; }
+    .form-textarea {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #e2e8f0;
+      font-size: 13px;
+      transition: all 0.2s;
+      outline: none;
+      resize: vertical;
+      min-height: 80px;
+    }
+    .form-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .form-label { display: block; font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .section-header { font-size: 13px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 0 6px; border-bottom: 1px solid #1e293b; margin-bottom: 12px; }
+
+    /* Template card */
+    .template-card { cursor: pointer; border: 2px solid transparent; border-radius: 10px; overflow: hidden; transition: all 0.25s; }
+    .template-card:hover { border-color: #6366f1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.3); }
+    .template-card.active { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.25); }
+
+    /* Btn styles */
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
+    .btn-secondary { background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .btn-secondary:hover { background: #334155; color: #e2e8f0; }
+    .btn-danger { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+    .btn-danger:hover { background: rgba(239,68,68,0.2); }
+    .btn-add { background: rgba(99,102,241,0.1); color: #818cf8; border: 1px dashed rgba(99,102,241,0.4); border-radius: 8px; padding: 8px; font-size: 12px; cursor: pointer; transition: all 0.2s; width: 100%; text-align: center; }
+    .btn-add:hover { background: rgba(99,102,241,0.2); }
+
+    /* Skill tag */
+    .skill-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; }
+    .skill-tag button { background: none; border: none; color: #a5b4fc; cursor: pointer; font-size: 13px; line-height: 1; padding: 0; }
+
+    /* Preview wrapper */
+    .preview-scale-wrap { width: 100%; display: flex; justify-content: center; }
+    .preview-page { width: 794px; min-height: 1123px; background: white; transform-origin: top center; box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+
+    /* Tab styles */
+    .tab-btn { padding: 6px 14px; font-size: 12px; font-weight: 500; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: #6366f1; color: white; }
+    .tab-btn:not(.active) { background: transparent; color: #64748b; }
+    .tab-btn:not(.active):hover { color: #94a3b8; background: #1e293b; }
+
+    /* Notification toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); animation: slideUp 0.3s ease; }
+    .toast-success { background: #065f46; color: #6ee7b7; border: 1px solid #047857; }
+    .toast-error { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+    .toast-info { background: #1e3a5f; color: #93c5fd; border: 1px solid #1d4ed8; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Upload zone */
+    .upload-zone { border: 2px dashed #334155; border-radius: 10px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .upload-zone:hover { border-color: #6366f1; background: rgba(99,102,241,0.05); }
+
+    /* Collapse animation */
+    .collapse-content { overflow: hidden; transition: max-height 0.3s ease; }
+
+    /* ===== RESUME TEMPLATE STYLES ===== */
+
+    /* T1 - Corporate Classic */
+    .t1 { font-family: 'Georgia', serif; color: #1a1a1a; }
+    .t1-header { background: #1a365d; color: white; padding: 32px 40px; display: flex; align-items: center; gap: 24px; }
+    .t1-name { font-size: 28px; font-weight: 700; letter-spacing: 0.02em; }
+    .t1-title { font-size: 14px; color: #93c5fd; margin-top: 4px; }
+    .t1-contact { font-size: 11px; color: #bfdbfe; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 12px; }
+    .t1-body { padding: 28px 40px; display: grid; grid-template-columns: 2fr 1fr; gap: 32px; }
+    .t1-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #1a365d; border-bottom: 2px solid #1a365d; padding-bottom: 4px; margin-bottom: 12px; }
+    .t1-exp-item { margin-bottom: 16px; }
+    .t1-exp-role { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+    .t1-exp-company { font-size: 12px; color: #1a365d; font-weight: 600; }
+    .t1-exp-dur { font-size: 11px; color: #6b7280; }
+    .t1-skill-tag { display: inline-block; background: #dbeafe; color: #1e40af; border-radius: 4px; padding: 2px 8px; font-size: 11px; margin: 2px; }
+
+    /* T2 - Modern Minimalist */
+    .t2 { font-family: 'Inter', sans-serif; color: #111; }
+    .t2-header { padding: 40px 50px 24px; border-bottom: 3px solid #111; display: flex; justify-content: space-between; align-items: flex-end; }
+    .t2-name { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+    .t2-title { font-size: 14px; color: #6b7280; margin-top: 4px; font-weight: 400; }
+    .t2-contact { text-align: right; font-size: 11px; color: #6b7280; line-height: 1.8; }
+    .t2-body { padding: 28px 50px; }
+    .t2-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #111; margin-bottom: 12px; margin-top: 24px; }
+    .t2-skill-tag { display: inline-block; border: 1.5px solid #111; border-radius: 0; padding: 2px 10px; font-size: 11px; margin: 2px; font-weight: 600; }
+
+    /* T3 - Two-Column Executive */
+    .t3 { font-family: 'Montserrat', sans-serif; color: #1a1a1a; display: flex; min-height: 1123px; }
+    .t3-sidebar { width: 270px; background: #1a202c; color: white; padding: 32px 24px; flex-shrink: 0; }
+    .t3-main { flex: 1; padding: 32px 28px; background: white; }
+    .t3-name { font-size: 20px; font-weight: 700; color: white; line-height: 1.2; margin-top: 16px; }
+    .t3-title { font-size: 11px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+    .t3-sidebar-section { margin-top: 24px; }
+    .t3-sidebar-title { font-size: 10px; font-weight: 700; color: #718096; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #2d3748; padding-bottom: 6px; margin-bottom: 10px; }
+    .t3-contact-item { font-size: 11px; color: #cbd5e0; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px; }
+    .t3-skill-bar { margin-bottom: 8px; }
+    .t3-skill-name { font-size: 11px; color: #cbd5e0; margin-bottom: 3px; }
+    .t3-skill-track { height: 3px; background: #2d3748; border-radius: 2px; }
+    .t3-skill-fill { height: 3px; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 2px; }
+    .t3-main-section { margin-bottom: 20px; }
+    .t3-main-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #667eea; margin-bottom: 10px; padding-bottom: 4px; border-bottom: 1.5px solid #667eea; }
+    .t3-exp-role { font-size: 13px; font-weight: 700; }
+    .t3-exp-company { font-size: 11px; color: #667eea; }
+    .t3-exp-dur { font-size: 10px; color: #9ca3af; }
+
+    /* T4 - Creative Tech */
+    .t4 { font-family: 'Roboto', sans-serif; color: #0f172a; }
+    .t4-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 36px 40px; display: flex; align-items: center; gap: 24px; }
+    .t4-name { font-size: 30px; font-weight: 700; }
+    .t4-title { font-size: 13px; color: #e0e7ff; margin-top: 4px; }
+    .t4-contact { margin-top: 10px; font-size: 11px; color: #c7d2fe; display: flex; flex-wrap: wrap; gap: 14px; }
+    .t4-body { padding: 28px 40px; display: grid; grid-template-columns: 3fr 2fr; gap: 28px; }
+    .t4-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7c3aed; border-left: 3px solid #7c3aed; padding-left: 8px; margin-bottom: 12px; }
+    .t4-skill-tag { display: inline-block; background: #f3e8ff; color: #7c3aed; border-radius: 12px; padding: 3px 10px; font-size: 11px; margin: 2px; }
+
+    /* T5 - Elegant Professional */
+    .t5 { font-family: 'Playfair Display', serif; color: #1a1a1a; }
+    .t5-header { padding: 40px 44px 28px; text-align: center; border-bottom: 1px solid #d1b06b; }
+    .t5-name { font-size: 34px; font-weight: 700; letter-spacing: 0.04em; color: #1a1a1a; }
+    .t5-title { font-size: 14px; color: #d1b06b; font-style: italic; margin-top: 6px; font-family: 'Lato', sans-serif; font-weight: 400; }
+    .t5-contact { font-size: 11px; color: #6b7280; margin-top: 12px; display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; font-family: 'Lato', sans-serif; }
+    .t5-body { padding: 28px 44px; }
+    .t5-section-title { font-size: 14px; font-weight: 700; color: #b8860b; letter-spacing: 0.06em; text-align: center; margin-bottom: 14px; margin-top: 22px; }
+    .t5-divider { height: 1px; background: linear-gradient(90deg, transparent, #d1b06b, transparent); margin-bottom: 16px; }
+    .t5-skill-tag { display: inline-block; border: 1px solid #d1b06b; color: #b8860b; border-radius: 0; padding: 2px 10px; font-size: 11px; margin: 2px; font-family: 'Lato', sans-serif; }
+
+    /* T6 - Clean Academic */
+    .t6 { font-family: 'Source Sans Pro', sans-serif; color: #1a1a1a; }
+    .t6-header { padding: 32px 44px; background: #f8fafc; border-bottom: 3px solid #0f766e; }
+    .t6-name { font-size: 26px; font-weight: 700; color: #0f766e; }
+    .t6-title { font-size: 14px; color: #374151; margin-top: 2px; }
+    .t6-contact { margin-top: 8px; font-size: 11px; color: #6b7280; display: flex; flex-wrap: wrap; gap: 14px; }
+    .t6-body { padding: 28px 44px; }
+    .t6-section-title { font-size: 14px; font-weight: 700; color: #0f766e; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; margin-top: 20px; }
+    .t6-rule { height: 1px; background: #d1fae5; margin-bottom: 12px; }
+    .t6-skill-tag { display: inline-block; background: #d1fae5; color: #065f46; border-radius: 4px; padding: 2px 8px; font-size: 11px; margin: 2px; }
+
+    /* T7 - Bold Impact */
+    .t7 { font-family: 'Montserrat', sans-serif; color: #1a1a1a; }
+    .t7-header { padding: 0; display: flex; align-items: stretch; }
+    .t7-name-block { background: #e53e3e; color: white; padding: 32px 36px; flex: 1; }
+    .t7-name { font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .t7-title { font-size: 12px; color: #fed7d7; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+    .t7-contact-block { background: #1a202c; color: white; padding: 32px 24px; width: 220px; display: flex; flex-direction: column; justify-content: center; font-size: 10.5px; gap: 6px; }
+    .t7-body { padding: 24px 36px; }
+    .t7-section-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #e53e3e; margin-bottom: 10px; margin-top: 20px; }
+    .t7-skill-tag { display: inline-block; background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; border-radius: 3px; padding: 2px 8px; font-size: 11px; margin: 2px; }
+
+    /* T8 - Navy Professional */
+    .t8 { font-family: 'Lato', sans-serif; color: #1a1a1a; }
+    .t8-header { background: #1e3a5f; color: white; padding: 32px 44px; display: flex; justify-content: space-between; align-items: center; }
+    .t8-name { font-size: 26px; font-weight: 700; }
+    .t8-title { font-size: 13px; color: #93c5fd; margin-top: 4px; }
+    .t8-contact { text-align: right; font-size: 11px; color: #bfdbfe; line-height: 2; }
+    .t8-body { padding: 28px 44px; display: grid; grid-template-columns: 2fr 1fr; gap: 28px; }
+    .t8-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #1e3a5f; border-bottom: 2px solid #bfdbfe; padding-bottom: 4px; margin-bottom: 10px; margin-top: 18px; }
+    .t8-skill-tag { display: inline-block; background: #dbeafe; color: #1e40af; border-radius: 4px; padding: 2px 8px; font-size: 11px; margin: 2px; }
+
+    /* T9 - Slate Sidebar */
+    .t9 { font-family: 'Inter', sans-serif; color: #1a1a1a; display: flex; min-height: 1123px; }
+    .t9-sidebar { width: 240px; background: #475569; color: white; padding: 28px 20px; flex-shrink: 0; }
+    .t9-main { flex: 1; padding: 28px 28px; background: white; }
+    .t9-name { font-size: 18px; font-weight: 800; color: white; margin-top: 14px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .t9-title { font-size: 10px; color: #cbd5e0; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px; }
+    .t9-sidebar-title { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 20px; margin-bottom: 8px; }
+    .t9-contact-item { font-size: 10.5px; color: #e2e8f0; margin-bottom: 5px; }
+    .t9-skill-pill { display: inline-block; background: #64748b; color: #e2e8f0; border-radius: 10px; padding: 2px 8px; font-size: 10px; margin: 2px; }
+    .t9-main-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; border-bottom: 2px solid #475569; padding-bottom: 4px; margin-bottom: 10px; margin-top: 18px; }
+
+    /* T10 - Green Accent */
+    .t10 { font-family: 'Roboto', sans-serif; color: #1a1a1a; }
+    .t10-header { padding: 36px 44px 24px; display: flex; align-items: center; gap: 24px; border-left: 6px solid #059669; }
+    .t10-name { font-size: 28px; font-weight: 700; color: #064e3b; }
+    .t10-title { font-size: 13px; color: #059669; margin-top: 4px; font-weight: 500; }
+    .t10-contact { margin-top: 10px; font-size: 11px; color: #4b5563; display: flex; flex-wrap: wrap; gap: 14px; }
+    .t10-body { padding: 24px 44px; }
+    .t10-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #059669; margin-bottom: 10px; margin-top: 20px; padding-bottom: 4px; border-bottom: 2px solid #d1fae5; }
+    .t10-skill-tag { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; border-radius: 12px; padding: 2px 10px; font-size: 11px; margin: 2px; }
+
+    /* Photo circle */
+    .photo-circle { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 3px solid rgba(255,255,255,0.3); }
+    .photo-square { width: 90px; height: 90px; object-fit: cover; flex-shrink: 0; }
+    .photo-rect { width: 75px; height: 90px; object-fit: cover; flex-shrink: 0; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .app-layout { flex-direction: column !important; }
+      .left-panel { width: 100% !important; height: auto !important; }
+      .right-panel { height: 600px; }
+    }
+  </style>
+</head>
+<body class="hero-gradient min-h-screen">
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ───────── Default Data ─────────
+const defaultData = {
+  photo: null,
+  fullName: 'Alexandra Chen',
+  jobTitle: 'Senior Software Engineer',
+  email: 'alex.chen@email.com',
+  phone: '+1 (555) 234-5678',
+  location: 'San Francisco, CA',
+  linkedin: 'linkedin.com/in/alexchen',
+  summary: 'Results-driven Software Engineer with 6+ years of experience designing scalable web applications and leading cross-functional teams. Passionate about clean code, performance optimization, and innovative problem-solving.',
+  experiences: [
+    { id: 1, company: 'TechCorp Inc.', role: 'Senior Software Engineer', duration: '2022 – Present', responsibilities: 'Led development of microservices architecture serving 2M+ users. Reduced API latency by 40% through caching strategies. Mentored 5 junior engineers.' },
+    { id: 2, company: 'StartupXYZ', role: 'Full Stack Developer', duration: '2019 – 2022', responsibilities: 'Built React/Node.js SaaS platform from scratch. Implemented CI/CD pipelines. Increased test coverage from 20% to 85%.' },
+  ],
+  educations: [
+    { id: 1, degree: 'B.S. Computer Science', institution: 'UC Berkeley', year: '2019', grade: '3.8 GPA' },
+  ],
+  skills: ['React', 'Node.js', 'TypeScript', 'Python', 'AWS', 'Docker', 'PostgreSQL', 'GraphQL'],
+  projects: [
+    { id: 1, title: 'OpenSource CLI Tool', description: 'A developer productivity tool with 2,000+ GitHub stars, built with Rust.' },
+  ],
+};
+
+// ───────── Toast Component ─────────
+function Toast({ message, type, onClose }) {
+  useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, []);
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  return (
+    <div className={`toast toast-${type}`}>
+      <span>{icons[type]}</span>
+      <span>{message}</span>
+    </div>
+  );
+}
+
+// ───────── TEMPLATE THUMBNAILS (mini previews) ─────────
+const templateMeta = [
+  { id: 'T1', name: 'Corporate Classic', color: '#1a365d', accent: '#3b82f6' },
+  { id: 'T2', name: 'Modern Minimalist', color: '#111111', accent: '#6b7280' },
+  { id: 'T3', name: 'Two-Column Executive', color: '#1a202c', accent: '#667eea' },
+  { id: 'T4', name: 'Creative Tech', color: '#667eea', accent: '#7c3aed' },
+  { id: 'T5', name: 'Elegant Professional', color: '#1a1a1a', accent: '#d1b06b' },
+  { id: 'T6', name: 'Clean Academic', color: '#0f766e', accent: '#10b981' },
+  { id: 'T7', name: 'Bold Impact', color: '#e53e3e', accent: '#1a202c' },
+  { id: 'T8', name: 'Navy Professional', color: '#1e3a5f', accent: '#3b82f6' },
+  { id: 'T9', name: 'Slate Sidebar', color: '#475569', accent: '#64748b' },
+  { id: 'T10', name: 'Green Accent', color: '#059669', accent: '#064e3b' },
+];
+
+function TemplateThumbnail({ meta, active, onClick }) {
+  return (
+    <div className={`template-card ${active ? 'active' : ''}`} onClick={onClick} title={meta.name}>
+      <div style={{ background: meta.color, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }}/>
+        <div style={{ flex: 1, paddingRight: 6 }}>
+          <div style={{ height: 4, background: 'rgba(255,255,255,0.7)', borderRadius: 2, marginBottom: 2, width: '80%' }}/>
+          <div style={{ height: 3, background: 'rgba(255,255,255,0.4)', borderRadius: 2, width: '50%' }}/>
+        </div>
+      </div>
+      <div style={{ background: '#f8fafc', padding: '4px 6px' }}>
+        <div style={{ height: 2.5, background: meta.accent, borderRadius: 1, marginBottom: 2, width: '90%', opacity: 0.7 }}/>
+        <div style={{ height: 2, background: '#e5e7eb', borderRadius: 1, marginBottom: 2, width: '70%' }}/>
+        <div style={{ height: 2, background: '#e5e7eb', borderRadius: 1, marginBottom: 2, width: '80%' }}/>
+        <div style={{ height: 2, background: '#e5e7eb', borderRadius: 1, width: '60%' }}/>
+      </div>
+      <div style={{ background: '#1e293b', padding: '3px 6px' }}>
+        <p style={{ color: active ? '#a5b4fc' : '#64748b', fontSize: 8, fontWeight: 600, textAlign: 'center', margin: 0 }}>{meta.name}</p>
+      </div>
+    </div>
+  );
+}
+
+// ───────── FORM SECTION COLLAPSE ─────────
+function FormSection({ title, icon, children, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ marginBottom: 16, background: '#0f172a', borderRadius: 10, border: '1px solid #1e293b', overflow: 'hidden' }}>
+      <button onClick={() => setOpen(!open)} style={{ width: '100%', padding: '10px 14px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#94a3b8', textAlign: 'left' }}>
+        <span style={{ fontSize: 14 }}>{icon}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', flex: 1, color: '#cbd5e0' }}>{title}</span>
+        <span style={{ fontSize: 12, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }}>▾</span>
+      </button>
+      {open && <div style={{ padding: '4px 14px 14px' }}>{children}</div>}
+    </div>
+  );
+}
+
+// ───────── RESUME TEMPLATES ─────────
+function PhotoEl({ src, cls, alt = 'Profile' }) {
+  if (!src) return null;
+  return <img src={src} alt={alt} className={cls} style={{ flexShrink: 0 }} />;
+}
+
+function BulletList({ text }) {
+  if (!text) return null;
+  const items = text.split('\n').filter(Boolean);
+  return (
+    <ul style={{ margin: 0, paddingLeft: 14, fontSize: 11, color: '#374151', lineHeight: 1.6 }}>
+      {items.map((it, i) => <li key={i} style={{ marginBottom: 3 }}>{it.replace(/^[-•]\s*/, '')}</li>)}
+    </ul>
+  );
+}
+
+// Template 1 – Corporate Classic
+function Template1({ d }) {
+  return (
+    <div className="t1">
+      <div className="t1-header">
+        <PhotoEl src={d.photo} cls="photo-circle" />
+        <div>
+          <div className="t1-name">{d.fullName || 'Your Name'}</div>
+          <div className="t1-title">{d.jobTitle}</div>
+          <div className="t1-contact">
+            {d.email && <span>✉ {d.email}</span>}
+            {d.phone && <span>📞 {d.phone}</span>}
+            {d.location && <span>📍 {d.location}</span>}
+            {d.linkedin && <span>🔗 {d.linkedin}</span>}
+          </div>
+        </div>
+      </div>
+      <div className="t1-body">
+        <div>
+          {d.summary && <><div className="t1-section-title">Profile Summary</div><p style={{ fontSize: 12, lineHeight: 1.7, color: '#374151', marginBottom: 20 }}>{d.summary}</p></>}
+          {d.experiences.length > 0 && <><div className="t1-section-title">Professional Experience</div>{d.experiences.map(e => (
+            <div className="t1-exp-item" key={e.id}>
+              <div className="t1-exp-role">{e.role}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="t1-exp-company">{e.company}</div>
+                <div className="t1-exp-dur">{e.duration}</div>
+              </div>
+              <BulletList text={e.responsibilities} />
+            </div>
+          ))}</>}
+          {d.projects.length > 0 && <><div className="t1-section-title" style={{ marginTop: 16 }}>Key Projects</div>{d.projects.map(p => (
+            <div key={p.id} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{p.title}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>{p.description}</div>
+            </div>
+          ))}</>}
+        </div>
+        <div>
+          {d.skills.length > 0 && <><div className="t1-section-title">Core Skills</div><div style={{ marginBottom: 16 }}>{d.skills.map((s, i) => <span className="t1-skill-tag" key={i}>{s}</span>)}</div></>}
+          {d.educations.length > 0 && <><div className="t1-section-title">Education</div>{d.educations.map(e => (
+            <div key={e.id} style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{e.degree}</div>
+              <div style={{ fontSize: 11, color: '#1a365d', fontWeight: 600 }}>{e.institution}</div>
+              <div style={{ fontSize: 10, color: '#6b7280' }}>{e.year} {e.grade && `| ${e.grade}`}</div>
+            </div>
+          ))}</>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Template 2 – Modern Minimalist
+function Template2({ d }) {
+  return (
+    <div className="t2">
+      <div className="t2-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <PhotoEl src={d.photo} cls="photo-square" style={{ borderRadius: 0 }} />
+          <div>
+            <div className="t2-name">{d.fullName || 'Your Name'}</div>
+            <div className="t2-title">{d.jobTitle}</div>
+          </div>
+        </div>
+        <div className="t2-contact">
+          {d.email && <div>{d.email}</div>}
+          {d.phone && <div>{d.phone}</div>}
+          {d.location && <div>{d.location}</div>}
+          {d.linkedin && <div>{d.linkedin}</div>}
+        </div>
+      </div>
+      <div className="t2-body">
+        {d.summary && <><div className="t2-section-title">About</div><p style={{ fontSize: 12, color: '#374151', lineHeight: 1.7, marginBottom: 8 }}>{d.summary}</p></>}
+        {d.experiences.length > 0 && <><div className="t2-section-title">Experience</div>{d.experiences.map(e => (
+          <div key={e.id} style={{ marginBottom: 14, display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
+            <div style={{ fontSize: 10, color: '#6b7280', paddingTop: 2 }}>{e.duration}</div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{e.role}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4 }}>{e.company}</div>
+              <BulletList text={e.responsibilities} />
+            </div>
+          </div>
+        ))}</>}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          {d.educations.length > 0 && <div><div className="t2-section-title">Education</div>{d.educations.map(e => (
+            <div key={e.id} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{e.degree}</div>
+              <div style={{ fontSize: 11, color: '#6b7280' }}>{e.institution} · {e.year}</div>
+              {e.grade && <div style={{ fontSize: 10, color: '#9ca3af' }}>{e.grade}</div>}
+            </div>
+          ))}</div>}
+          {d.skills.length > 0 && <div><div className="t2-section-title">Skills</div><div>{d.skills.map((s, i) => <span className="t2-skill-tag" key={i}>{s}</span>)}</div></div>}
+        </div>
+        {d.projects.length > 0 && <><div className="t2-section-title">Projects</div>{d.projects.map(p => (
+          <div key={p.id} style={{ marginBottom: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 700 }}>{p.title}</span>
+            <span style={{ fontSize: 11, color: '#6b7280' }}> — {p.description}</span>
+          </div>
+        ))}</>}
+      </div>
+    </div>
+  );
+}
+
+// Template 3 – Two-Column Executive
+function Template3({ d }) {
+  const skills = d.skills.slice(0, 8);
+  return (
+    <div className="t3">
+      <div className="t3-sidebar">
+        <div style={{ textAlign: 'center' }}>
+          <PhotoEl src={d.photo} cls="photo-circle" style={{ margin: '0 auto', display: 'block' }} />
+          <div className="t3-name">{d.fullName || 'Your Name'}</div>
+          <div className="t3-title">{d.jobTitle}</div>
+        </div>
+        <div className="t3-sidebar-section">
+          <div className="t3-sidebar-title">Contact</div>
+          {d.email && <div className="t3-contact-item">✉ {d.email}</div>}
+          {d.phone && <div className="t3-contact-item">📞 {d.phone}</div>}
+          {d.location && <div className="t3-contact-item">📍 {d.location}</div>}
+          {d.linkedin && <div className="t3-contact-item">🔗 {d.linkedin}</div>}
+        </div>
+        {skills.length > 0 && <div className="t3-sidebar-section">
+          <div className="t3-sidebar-title">Skills</div>
+          {skills.map((s, i) => (
+            <div className="t3-skill-bar" key={i}>
+              <div className="t3-skill-name">{s}</div>
+              <div className="t3-skill-track"><div className="t3-skill-fill" style={{ width: `${75 + (i % 3) * 8}%` }}/></div>
+            </div>
+          ))}
+        </div>}
+        {d.educations.length > 0 && <div className="t3-sidebar-section">
+          <div className="t3-sidebar-title">Education</div>
+          {d.educations.map(e => (
+            <div key={e.id} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#e2e8f0' }}>{e.degree}</div>
+              <div style={{ fontSize: 10, color: '#a0aec0' }}>{e.institution}</div>
+              <div style={{ fontSize: 10, color: '#718096' }}>{e.year} {e.grade && `· ${e.grade}`}</div>
+            </div>
+          ))}
+        </div>}
+      </div>
+      <div className="t3-main">
+        {d.summary && <><div className="t3-main-section-title">Professional Summary</div><p style={{ fontSize: 12, lineHeight: 1.7, color: '#4a5568', marginBottom: 16 }}>{d.summary}</p></>}
+        {d.experiences.length > 0 && <><div className="t3-main-section-title">Work Experience</div>{d.experiences.map(e => (
+          <div key={e.id} style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div className="t3-exp-role">{e.role}</div>
+                <div className="t3-exp-company">{e.company}</div>
+              </div>
+              <div className="t3-exp-dur">{e.duration}</div>
+            </div>
+            <BulletList text={e.responsibilities} />
+          </div>
+        ))}</>}
+        {d.projects.length > 0 && <><div className="t3-main-section-title">Projects</div>{d.projects.map(p => (
+          <div key={p.id} style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 700 }}>{p.title}</div>
+            <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>{p.description}</div>
+          </div>
+        ))}</>}
+      </div>
+    </div>
+  );
+}
+
+// Template 4 – Creative Tech
+function Template4({ d }) {
+  return (
+    <div className="t4">
+      <div className="t4-header">
+        <PhotoEl src={d.photo} cls="photo-circle" />
+        <div>
+          <div className="t4-name">{d.fullName || 'Your Name'}</div>
+          <div className="t4-title">{d.jobTitle}</div>
+          <div className="t4-contact">
+            {d.email && <span>✉ {d.email}</span>}
+            {d.phone && <span>📞 {d.phone}</span>}
+            {d.location && <span>📍 {d.location}</span>}
+            {d.linkedin && <span>🔗 {d.linkedin}</span>}
+          </div>
+        </div>
+      </div>
+      <div className="t4-body">
+        <div>
+          {d.summary && <><div className="t4-section-title">Profile</div><p style={{ fontSize: 12, lineHeight: 1.7, color: '#374151', marginBottom: 16 }}>{d.summary}</p></>}
+          {d.experiences.length > 0 && <><div className="t4-section-title">Experience</div>{d.experiences.map(e => (
+            <div key={e.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #f3e8ff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div><div style={{ fontSize: 13, fontWeight: 700 }}>{e.role}</div><div style={{ fontSize: 11, color: '#7c3aed', fontWeight: 600 }}>{e.company}</div></div>
+                <div style={{ fontSize: 10, color: '#9ca3af', textAlign: 'right' }}>{e.duration}</div>
+              </div>
+              <BulletList text={e.responsibilities} />
+            </div>
+          ))}</>}
+        </div>
+        <div>
+          {d.skills.length > 0 && <><div className="t4-section-title">Tech Stack</div><div style={{ marginBottom: 14 }}>{d.skills.map((s, i) => <span className="t4-skill-tag" key={i}>{s}</span>)}</div></>}
+          {d.educations.length > 0 && <><div className="t4-section-title">Education</div>{d.educations.map(e => (
+            <div key={e.id} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{e.degree}</div>
+              <div style={{ fontSize: 11, color: '#7c3aed' }}>{e.institution}</div>
+              <div style={{ fontSize: 10, color: '#9ca3af' }}>{e.year} {e.grade && `· ${e.grade}`}</div>
+            </div>
+          ))}</>}
+          {d.projects.length > 0 && <><div className="t4-section-title">Projects</div>{d.projects.map(p => (
+            <div key={p.id} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{p.title}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>{p.description}</div>
+            </div>
+          ))}</>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Template 5 – Elegant Professional
+function Template5({ d }) {
+  return (
+    <div className="t5">
+      <div className="t5-header">
+        {d.photo && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}><img src={d.photo} alt="Profile" style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid #d1b06b' }} /></div>}
+        <div className="t5-name">{d.fullName || 'Your Name'}</div>
+        <div className="t5-title">{d.jobTitle}</div>
+        <div className="t5-contact">
+          {d.email && <span>✉ {d.email}</span>}
+          {d.phone && <span>☏ {d.phone}</span>}
+          {d.location && <span>◎ {d.location}</span>}
+          {d.linkedin && <span>⊞ {d.linkedin}</span>}
+        </div>
+      </div>
+      <div className="t5-body">
+        {d.summary && <><div className="t5-section-title">Profile</div><div className="t5-divider"/><p style={{ fontSize: 12, lineHeight: 1.8, color: '#374151', textAlign: 'center', fontFamily: 'Lato', marginBottom: 16 }}>{d.summary}</p></>}
+        {d.experiences.length > 0 && <><div className="t5-section-title">Professional Experience</div><div className="t5-divider"/>{d.experiences.map(e => (
+          <div key={e.id} style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div><div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'Lato' }}>{e.role}</div><div style={{ fontSize: 12, color: '#b8860b', fontFamily: 'Lato' }}>{e.company}</div></div>
+              <div style={{ fontSize: 11, color: '#6b7280', fontFamily: 'Lato', fontStyle: 'italic' }}>{e.duration}</div>
+            </div>
+            <BulletList text={e.responsibilities} />
+          </div>
+        ))}</>}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          {d.educations.length > 0 && <div><div className="t5-section-title">Education</div><div className="t5-divider"/>{d.educations.map(e => (
+            <div key={e.id} style={{ marginBottom: 8, fontFamily: 'Lato' }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{e.degree}</div>
+              <div style={{ fontSize: 11, color: '#b8860b' }}>{e.institution}</div>
+              <div style={{ fontSize: 10, color: '#6b7280' }}>{e.year} {e.grade && `| ${e.grade}`}</div>
+            </div>
+          ))}</div>}
+          {d.skills.length > 0 && <div><div className="t5-section-title">Skills</div><div className="t5-divider"/><div style={{ fontFamily: 'Lato' }}>{d.skills.map((s, i) => <span className="t5-skill-tag" key={i}>{s}</span>)}</div></div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Template 6 – Clean Academic
+function Template6({ d }) {
+  return (
+    <div className="t6">
+      <div className="t6-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <PhotoEl src={d.photo} cls="photo-rect" />
+          <div>
+            <div className="t6-name">{d.fullName || 'Your Name'}</div>
+            <div className="t6-title">{d.jobTitle}</div>
+            <div className="t6-contact">
+              {d.email && <span>✉ {d.email}</span>}
+              {d.phone && <span>📞 {d.phone}</span>}
+              {d.location && <span>📍 {d.location}</span>}
+              {d.linkedin && <span>🔗 {d.linkedin}</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="t6-body">
+        {d.summary && <><div className="t6-section-title">Objective / Summary</div><div className="t6-rule"/><p style={{ fontSize: 12, lineHeight: 1.7, color: '#374151', marginBottom: 16 }}>{d.summary}</p></>}
+        {d.educations.length > 0 && <><div className="t6-section-title">Education</div><div className="t6-rule"/>{d.educations.map(e => (
+          <div key={e.id} style={{ marginBottom: 12, display: 'grid', gridTemplateColumns: '110px 1fr', gap: 10 }}>
+            <div style={{ fontSize: 10, color: '#6b7280' }}>{e.year}</div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{e.degree}</div>
+              <div style={{ fontSize: 11, color: '#0f766e' }}>{e.institution}</div>
+              {e.grade && <div style={{ fontSize: 10, color: '#6b7280' }}>{e.grade}</div>}
+            </div>
+          </div>
+        ))}</>}
+        {d.experiences.length > 0 && <><div className="t6-section-title">Work Experience</div><div className="t6-rule"/>{d.experiences.map(e => (
+          <div key={e.id} style={{ marginBottom: 14, display: 'grid', gridTemplateColumns: '110px 1fr', gap: 10 }}>
+            <div style={{ fontSize: 10, color: '#6b7280', paddingTop: 2 }}>{e.duration}</div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{e.role}</div>
+              <div style={{ fontSize: 11, color: '#0f766e' }}>{e.company}</div>
+              <BulletList text={e.responsibilities} />
+            </div>
+          </div>
+        ))}</>}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          {d.skills.length > 0 && <div><div className="t6-section-title">Skills</div><div className="t6-rule"/><div>{d.skills.map((s, i) => <span className="t6-skill-tag" key={i}>{s}</span>)}</div></div>}
+          {d.projects.length > 0 && <div><div className="t6-section-title">Projects</div><div className="t6-rule"/>{d.projects.map(p => (
+            <div key={p.id} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{p.title}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>{p.description}</div>
+            </div>
+          ))}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Template 7 – Bold Impact
+function Template7({ d }) {
+  return (
+    <div className="t7">
+      <div className="t7-header">
+        <div className="t7-name-block" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <PhotoEl src={d.photo} cls="photo-circle" />
+          <div>
+            <div className="t7-name">{d.fullName || 'Your Name'}</div>
+            <div className="t7-title">{d.jobTitle}</div>
+          </div>
+        </div>
+        <div className="t7-contact-block">
+          {d.email && <div style={{ color: '#a0aec0' }}>✉ {d.email}</div>}
+          {d.phone && <div style={{ color: '#a0aec0' }}>📞 {d.phone}</div>}
+          {d.location && <div style={{ color: '#a0aec0' }}>📍 {d.location}</div>}
+          {d.linkedin && <div style={{ color: '#a0aec0' }}>🔗 {d.linkedin}</div>}
+        </div>
+      </div>
+      <div className="t7-body">
+        {d.summary && <><div className="t7-section-title">Summary</div><p style={{ fontSize: 12, lineHeight: 1.7, color: '#374151', marginBottom: 8 }}>{d.summary}</p></>}
+        {d.experiences.length > 0 && <><div className="t7-section-title">Experience</div>{d.experiences.map(e => (
+          <div key={e.id} style={{ marginBottom: 14, borderLeft: '3px solid #e53e3e', paddingLeft: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div><div style={{ fontSize: 13, fontWeight: 700 }}>{e.role}</div><div style={{ fontSize: 11, fontWeight: 600, color: '#e53e3e' }}>{e.company}</div></div>
+              <div style={{ fontSize: 10, color: '#6b7280' }}>{e.duration}</div>
+            </div>
+            <BulletList text={e.responsibilities} />
+          </div>
+        ))}</>}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          {d.skills.length > 0 && <div><div className="t7-section-title">Skills</div><div>{d.skills.map((s, i) => <span className="t7-skill-tag" key={i}>{s}</span>)}</div></div>}
+          {d.educations.length > 0 && <div><div className="t7-section-title">Education</div>{d.educations.map(e => (
+            <div key={e.id} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{e.degree}</div>
+              <div style={{ fontSize: 11, color: '#e53e3e' }}>{e.institution}</div>
+              <div style={{ fontSize: 10, color: '#6b7280' }}>{e.year} {e.grade && `· ${e.grade}`}</div>
+            </div>
+          ))}</div>}
+        </div>
+        {d.projects.length > 0 && <><div className="t7-section-title">Projects</div>{d.projects.map(p => (
+          <div key={p.id} style={{ marginBottom: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 800, color: '#1a202c' }}>{p.title}</span>
+            <span style={{ fontSize: 11, color: '#6b7280' }}> — {p.description}</span>
+          </div>
+        ))}</>}
+      </div>
+    </div>
+  );
+}
+
+// Template 8 – Navy Professional
+function Template8({ d }) {
+  return (
+    <div className="t8">
+      <div className="t8-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <PhotoEl src={d.photo} cls="photo-circle" />
+          <div>
+            <div className="t8-name">{d.fullName || 'Your Name'}</div>
+            <div className="t8-title">{d.jobTitle}</div>
+          </div>
+        </div>
+        <div className="t8-contact">
+          {d.email && <div>{d.email}</div>}
+          {d.phone && <div>{d.phone}</div>}
+          {d.location && <div>{d.location}</div>}
+          {d.linkedin && <div>{d.linkedin}</div>}
+        </div>
+      </div>
+      <div className="t8-body">
+        <div>
+          {d.summary && <><div className="t8-section-title">Summary</div><p style={{ fontSize: 12, lineHeight: 1.7, color: '#374151' }}>{d.summary}</p></>}
+          {d.experiences.length > 0 && <><div className="t8-section-title">Work Experience</div>{d.experiences.map(e => (
+            <div key={e.id} style={{ marginBottom: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div><div style={{ fontSize: 13, fontWeight: 700 }}>{e.role}</div><div style={{ fontSize: 11, color: '#1e3a5f', fontWeight: 600 }}>{e.company}</div></div>
+                <div style={{ fontSize: 10, color: '#6b7280' }}>{e.duration}</div>
+              </div>
+              <BulletList text={e.responsibilities} />
+            </div>
+          ))}</>}
+          {d.projects.length > 0 && <><div className="t8-section-title">Projects</div>{d.projects.map(p => (
+            <div key={p.id} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{p.title}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>{p.description}</div>
+            </div>
+          ))}</>}
+        </div>
+        <div>
+          {d.skills.length > 0 && <><div className="t8-section-title">Skills</div><div style={{ marginBottom: 8 }}>{d.skills.map((s, i) => <span className="t8-skill-tag" key={i}>{s}</span>)}</div></>}
+          {d.educations.length > 0 && <><div className="t8-section-title">Education</div>{d.educations.map(e => (
+            <div key={e.id} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{e.degree}</div>
+              <div style={{ fontSize: 11, color: '#1e3a5f' }}>{e.institution}</div>
+              <div style={{ fontSize: 10, color: '#6b7280' }}>{e.year} {e.grade && `· ${e.grade}`}</div>
+            </div>
+          ))}</>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Template 9 – Slate Sidebar
+function Template9({ d }) {
+  return (
+    <div className="t9">
+      <div className="t9-sidebar">
+        <div style={{ textAlign: 'center' }}>
+          <PhotoEl src={d.photo} cls="photo-circle" style={{ margin: '0 auto', display: 'block' }} />
+          <div className="t9-name">{d.fullName || 'Your Name'}</div>
+          <div className="t9-title">{d.jobTitle}</div>
+        </div>
+        <div>
+          <div className="t9-sidebar-title">Contact</div>
+          {d.email && <div className="t9-contact-item">✉ {d.email}</div>}
+          {d.phone && <div className="t9-contact-item">📞 {d.phone}</div>}
+          {d.location && <div className="t9-contact-item">📍 {d.location}</div>}
+          {d.linkedin && <div className="t9-contact-item">🔗 {d.linkedin}</div>}
+        </div>
+        {d.skills.length > 0 && <div>
+          <div className="t9-sidebar-title">Skills</div>
+          <div>{d.skills.map((s, i) => <span className="t9-skill-pill" key={i}>{s}</span>)}</div>
+        </div>}
+        {d.educations.length > 0 && <div>
+          <div className="t9-sidebar-title">Education</div>
+          {d.educations.map(e => (
+            <div key={e.id} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0' }}>{e.degree}</div>
+              <div style={{ fontSize: 10, color: '#94a3b8' }}>{e.institution}</div>
+              <div style={{ fontSize: 10, color: '#64748b' }}>{e.year} {e.grade && `· ${e.grade}`}</div>
+            </div>
+          ))}
+        </div>}
+      </div>
+      <div className="t9-main">
+        {d.summary && <><div className="t9-main-section-title">Profile Summary</div><p style={{ fontSize: 12, lineHeight: 1.7, color: '#374151', marginBottom: 12 }}>{d.summary}</p></>}
+        {d.experiences.length > 0 && <><div className="t9-main-section-title">Work Experience</div>{d.experiences.map(e => (
+          <div key={e.id} style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div><div style={{ fontSize: 13, fontWeight: 700 }}>{e.role}</div><div style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>{e.company}</div></div>
+              <div style={{ fontSize: 10, color: '#9ca3af' }}>{e.duration}</div>
+            </div>
+            <BulletList text={e.responsibilities} />
+          </div>
+        ))}</>}
+        {d.projects.length > 0 && <><div className="t9-main-section-title">Key Projects</div>{d.projects.map(p => (
+          <div key={p.id} style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700 }}>{p.title}</div>
+            <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>{p.description}</div>
+          </div>
+        ))}</>}
+      </div>
+    </div>
+  );
+}
+
+// Template 10 – Green Accent
+function Template10({ d }) {
+  return (
+    <div className="t10">
+      <div className="t10-header">
+        <PhotoEl src={d.photo} cls="photo-circle" style={{ border: '3px solid #059669' }} />
+        <div>
+          <div className="t10-name">{d.fullName || 'Your Name'}</div>
+          <div className="t10-title">{d.jobTitle}</div>
+          <div className="t10-contact">
+            {d.email && <span>✉ {d.email}</span>}
+            {d.phone && <span>📞 {d.phone}</span>}
+            {d.location && <span>📍 {d.location}</span>}
+            {d.linkedin && <span>🔗 {d.linkedin}</span>}
+          </div>
+        </div>
+      </div>
+      <div className="t10-body">
+        {d.summary && <><div className="t10-section-title">Professional Summary</div><p style={{ fontSize: 12, lineHeight: 1.7, color: '#374151', marginBottom: 14 }}>{d.summary}</p></>}
+        {d.experiences.length > 0 && <><div className="t10-section-title">Work Experience</div>{d.experiences.map(e => (
+          <div key={e.id} style={{ marginBottom: 14, borderLeft: '3px solid #6ee7b7', paddingLeft: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div><div style={{ fontSize: 13, fontWeight: 700 }}>{e.role}</div><div style={{ fontSize: 11, color: '#059669', fontWeight: 600 }}>{e.company}</div></div>
+              <div style={{ fontSize: 10, color: '#6b7280' }}>{e.duration}</div>
+            </div>
+            <BulletList text={e.responsibilities} />
+          </div>
+        ))}</>}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          {d.skills.length > 0 && <div><div className="t10-section-title">Skills</div><div>{d.skills.map((s, i) => <span className="t10-skill-tag" key={i}>{s}</span>)}</div></div>}
+          {d.educations.length > 0 && <div><div className="t10-section-title">Education</div>{d.educations.map(e => (
+            <div key={e.id} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{e.degree}</div>
+              <div style={{ fontSize: 11, color: '#059669' }}>{e.institution}</div>
+              <div style={{ fontSize: 10, color: '#6b7280' }}>{e.year} {e.grade && `· ${e.grade}`}</div>
+            </div>
+          ))}</div>}
+        </div>
+        {d.projects.length > 0 && <><div className="t10-section-title">Projects</div>{d.projects.map(p => (
+          <div key={p.id} style={{ marginBottom: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#064e3b' }}>{p.title}</span>
+            <span style={{ fontSize: 11, color: '#6b7280' }}> — {p.description}</span>
+          </div>
+        ))}</>}
+      </div>
+    </div>
+  );
+}
+
+const templates = { T1: Template1, T2: Template2, T3: Template3, T4: Template4, T5: Template5, T6: Template6, T7: Template7, T8: Template8, T9: Template9, T10: Template10 };
+
+// ───────── MAIN APP ─────────
+function App() {
+  const [data, setData] = useState(defaultData);
+  const [template, setTemplate] = useState('T1');
+  const [activeTab, setActiveTab] = useState('personal');
+  const [skillInput, setSkillInput] = useState('');
+  const [toast, setToast] = useState(null);
+  const [receiverEmail, setReceiverEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [previewScale, setPreviewScale] = useState(0.6);
+  const previewRef = useRef(null);
+  const previewContainerRef = useRef(null);
+
+  // Dynamic scale
+  useEffect(() => {
+    function updateScale() {
+      if (previewContainerRef.current) {
+        const w = previewContainerRef.current.offsetWidth - 40;
+        setPreviewScale(Math.min(w / 794, 0.85));
+      }
+    }
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
+  const showToast = (message, type = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3800);
+  };
+
+  // Field updater
+  const upd = (field, value) => setData(p => ({ ...p, [field]: value }));
+
+  // Experience handlers
+  const addExp = () => setData(p => ({ ...p, experiences: [...p.experiences, { id: Date.now(), company: '', role: '', duration: '', responsibilities: '' }] }));
+  const updExp = (id, field, val) => setData(p => ({ ...p, experiences: p.experiences.map(e => e.id === id ? { ...e, [field]: val } : e) }));
+  const delExp = id => setData(p => ({ ...p, experiences: p.experiences.filter(e => e.id !== id) }));
+
+  // Education handlers
+  const addEdu = () => setData(p => ({ ...p, educations: [...p.educations, { id: Date.now(), degree: '', institution: '', year: '', grade: '' }] }));
+  const updEdu = (id, field, val) => setData(p => ({ ...p, educations: p.educations.map(e => e.id === id ? { ...e, [field]: val } : e) }));
+  const delEdu = id => setData(p => ({ ...p, educations: p.educations.filter(e => e.id !== id) }));
+
+  // Project handlers
+  const addProj = () => setData(p => ({ ...p, projects: [...p.projects, { id: Date.now(), title: '', description: '' }] }));
+  const updProj = (id, field, val) => setData(p => ({ ...p, projects: p.projects.map(pr => pr.id === id ? { ...pr, [field]: val } : pr) }));
+  const delProj = id => setData(p => ({ ...p, projects: p.projects.filter(pr => pr.id !== id) }));
+
+  // Skill handlers
+  const addSkill = (e) => {
+    if (e.key === 'Enter' && skillInput.trim()) {
+      if (!data.skills.includes(skillInput.trim())) setData(p => ({ ...p, skills: [...p.skills, skillInput.trim()] }));
+      setSkillInput('');
+    }
+  };
+  const removeSkill = s => setData(p => ({ ...p, skills: p.skills.filter(sk => sk !== s) }));
+
+  // Photo upload
+  const handlePhoto = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) { showToast('Photo must be under 3MB', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => upd('photo', ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  // PDF Download
+  const handleDownload = async () => {
+    if (!previewRef.current) return;
+    setDownloading(true);
+    showToast('Generating PDF…', 'info');
+    try {
+      const opt = {
+        margin: 0,
+        filename: `${data.fullName || 'resume'}_resume.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
+      };
+      await html2pdf().set(opt).from(previewRef.current).save();
+      showToast('PDF downloaded successfully!', 'success');
+    } catch (err) {
+      showToast('PDF generation failed. Try again.', 'error');
+    }
+    setDownloading(false);
+  };
+
+  // Send via Email (EmailJS)
+  const handleSendMail = async () => {
+    if (!receiverEmail || !receiverEmail.includes('@')) { showToast('Please enter a valid receiver email.', 'error'); return; }
+    setSending(true);
+    showToast('Sending email…', 'info');
+    try {
+      // EmailJS — user must configure their own Service/Template/Public Key
+      // This sends a notification email with resume details
+      const templateParams = {
+        to_email: receiverEmail,
+        from_name: data.fullName || 'Applicant',
+        job_title: data.jobTitle || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        summary: data.summary || '',
+        skills: data.skills.join(', '),
+        linkedin: data.linkedin || '',
+        location: data.location || '',
+      };
+      // Replace with your actual EmailJS credentials:
+      await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams, 'YOUR_PUBLIC_KEY');
+      showToast(`Resume sent to ${receiverEmail}!`, 'success');
+      setReceiverEmail('');
+    } catch (err) {
+      showToast('Email sending failed. Please configure EmailJS credentials.', 'error');
+    }
+    setSending(false);
+  };
+
+  const TemplateComp = templates[template];
+  const tabs = [
+    { id: 'personal', label: '👤 Personal' },
+    { id: 'experience', label: '💼 Experience' },
+    { id: 'education', label: '🎓 Education' },
+    { id: 'skills', label: '⚡ Skills' },
+    { id: 'mail', label: '📧 Mail' },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      {/* Header */}
+      <header style={{ background: 'linear-gradient(90deg, #0f172a 0%, #1e293b 100%)', borderBottom: '1px solid #1e293b', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, zIndex: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📄</div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#e2e8f0', letterSpacing: '-0.02em' }}>ProResume</div>
+            <div style={{ fontSize: 9, color: '#64748b', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Builder</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button className="btn-primary" onClick={handleDownload} disabled={downloading} style={{ padding: '7px 16px', fontSize: 12 }}>
+            {downloading ? '⏳' : '⬇'} Download PDF
+          </button>
+        </div>
+      </header>
+
+      {/* Template Selector */}
+      <div style={{ background: '#0a1628', borderBottom: '1px solid #1e293b', padding: '10px 24px', flexShrink: 0, overflowX: 'auto' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span style={{ fontSize: 10, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap', marginRight: 4 }}>Templates:</span>
+          {templateMeta.map(m => (
+            <TemplateThumbnail key={m.id} meta={m} active={template === m.id} onClick={() => setTemplate(m.id)} />
+          ))}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="app-layout" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+
+        {/* ───── LEFT PANEL ───── */}
+        <div className="left-panel" style={{ width: 380, flexShrink: 0, background: '#0d1b2e', borderRight: '1px solid #1e293b', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* Tabs */}
+          <div style={{ padding: '10px 14px 0', background: '#0a1628', borderBottom: '1px solid #1e293b', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {tabs.map(t => (
+              <button key={t.id} className={`tab-btn ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>{t.label}</button>
+            ))}
+          </div>
+
+          {/* Scrollable form */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '14px' }}>
+
+            {/* ── PERSONAL TAB ── */}
+            {activeTab === 'personal' && (
+              <div>
+                <FormSection title="Personal Info" icon="👤">
+                  <div style={{ marginBottom: 10 }}>
+                    <label className="form-label">Profile Photo</label>
+                    <label className="upload-zone" style={{ display: 'block', cursor: 'pointer' }}>
+                      <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
+                      {data.photo
+                        ? <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <img src={data.photo} style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} alt="Preview" />
+                            <span style={{ fontSize: 11, color: '#6ee7b7' }}>✓ Photo uploaded — click to change</span>
+                          </div>
+                        : <div><div style={{ fontSize: 20, marginBottom: 4 }}>📷</div><div style={{ fontSize: 11, color: '#64748b' }}>Click to upload passport photo</div><div style={{ fontSize: 10, color: '#475569' }}>JPG, PNG up to 3MB</div></div>
+                      }
+                    </label>
+                    {data.photo && <button className="btn-danger" style={{ marginTop: 4 }} onClick={() => upd('photo', null)}>✕ Remove Photo</button>}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    {[['fullName','Full Name','e.g. Alex Chen'],['jobTitle','Job Title','e.g. Software Engineer'],['email','Email','you@example.com'],['phone','Phone','+1 234 567 8901'],['location','Location','City, Country'],['linkedin','LinkedIn / Website','linkedin.com/in/you']].map(([f,l,p]) => (
+                      <div key={f} style={{ gridColumn: f === 'fullName' || f === 'email' || f === 'linkedin' ? 'span 2' : 'auto' }}>
+                        <label className="form-label">{l}</label>
+                        <input className="form-input" type="text" placeholder={p} value={data[f] || ''} onChange={e => upd(f, e.target.value)} />
+                      </div>
+                    ))}
+                  </div>
+                </FormSection>
+                <FormSection title="Professional Summary" icon="📝">
+                  <label className="form-label">Profile Bio / Summary</label>
+                  <textarea className="form-textarea" rows={5} placeholder="Write a compelling 2-3 sentence summary highlighting your key strengths, experience, and career goals…" value={data.summary} onChange={e => upd('summary', e.target.value)} />
+                  <div style={{ fontSize: 10, color: '#475569', marginTop: 4 }}>{data.summary.length} characters · Aim for 150-300 for best ATS results</div>
+                </FormSection>
+              </div>
+            )}
+
+            {/* ── EXPERIENCE TAB ── */}
+            {activeTab === 'experience' && (
+              <div>
+                {data.experiences.map((exp, idx) => (
+                  <FormSection key={exp.id} title={`Experience ${idx + 1}${exp.company ? ' — ' + exp.company : ''}`} icon="💼" defaultOpen={idx === 0}>
+                    <div style={{ display: 'grid', gap: 8 }}>
+                      {[['company','Company','e.g. Google Inc.'],['role','Job Title / Role','e.g. Senior Engineer'],['duration','Duration','e.g. Jan 2022 – Present']].map(([f,l,p]) => (
+                        <div key={f}>
+                          <label className="form-label">{l}</label>
+                          <input className="form-input" type="text" placeholder={p} value={exp[f]} onChange={e => updExp(exp.id, f, e.target.value)} />
+                        </div>
+                      ))}
+                      <div>
+                        <label className="form-label">Responsibilities / Achievements</label>
+                        <textarea className="form-textarea" rows={4} placeholder={"• Led team of 5 engineers to deliver platform v2.0\n• Improved performance by 40% via caching\n• Mentored junior developers"} value={exp.responsibilities} onChange={e => updExp(exp.id, 'responsibilities', e.target.value)} />
+                        <div style={{ fontSize: 10, color: '#475569', marginTop: 3 }}>One bullet point per line. Start with action verbs.</div>
+                      </div>
+                      {data.experiences.length > 1 && <button className="btn-danger" onClick={() => delExp(exp.id)}>🗑 Remove This Experience</button>}
+                    </div>
+                  </FormSection>
+                ))}
+                <button className="btn-add" onClick={addExp}>+ Add More Experience</button>
+              </div>
+            )}
+
+            {/* ── EDUCATION TAB ── */}
+            {activeTab === 'education' && (
+              <div>
+                {data.educations.map((edu, idx) => (
+                  <FormSection key={edu.id} title={`Education ${idx + 1}${edu.institution ? ' — ' + edu.institution : ''}`} icon="🎓" defaultOpen={idx === 0}>
+                    <div style={{ display: 'grid', gap: 8 }}>
+                      {[['degree','Degree / Qualification','e.g. B.Tech Computer Science'],['institution','Institution / University','e.g. MIT'],['year','Passing Year','e.g. 2023'],['grade','Grade / CGPA','e.g. 3.9 GPA']].map(([f,l,p]) => (
+                        <div key={f}>
+                          <label className="form-label">{l}</label>
+                          <input className="form-input" type="text" placeholder={p} value={edu[f]} onChange={e => updEdu(edu.id, f, e.target.value)} />
+                        </div>
+                      ))}
+                      {data.educations.length > 1 && <button className="btn-danger" onClick={() => delEdu(edu.id)}>🗑 Remove This Education</button>}
+                    </div>
+                  </FormSection>
+                ))}
+                <button className="btn-add" onClick={addEdu}>+ Add More Education</button>
+
+                <FormSection title="Skills" icon="⚡" defaultOpen={true}>
+                  <label className="form-label">Add Skills (press Enter)</label>
+                  <input className="form-input" type="text" placeholder="e.g. React, Python, Figma…" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={addSkill} />
+                  <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {data.skills.map((s, i) => (
+                      <span className="skill-tag" key={i}>{s}<button onClick={() => removeSkill(s)}>×</button></span>
+                    ))}
+                    {data.skills.length === 0 && <span style={{ fontSize: 11, color: '#475569' }}>No skills added yet. Type above and press Enter.</span>}
+                  </div>
+                </FormSection>
+
+                <FormSection title="Projects" icon="🚀" defaultOpen={true}>
+                  {data.projects.map((proj, idx) => (
+                    <div key={proj.id} style={{ marginBottom: 10, background: '#0a1628', borderRadius: 8, padding: 10, border: '1px solid #1e293b' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontSize: 11, color: '#818cf8', fontWeight: 700 }}>Project {idx + 1}</span>
+                        {data.projects.length > 1 && <button className="btn-danger" onClick={() => delProj(proj.id)}>✕</button>}
+                      </div>
+                      <div style={{ marginBottom: 6 }}>
+                        <label className="form-label">Project Title</label>
+                        <input className="form-input" type="text" placeholder="e.g. E-Commerce Platform" value={proj.title} onChange={e => updProj(proj.id, 'title', e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="form-label">Description</label>
+                        <textarea className="form-textarea" rows={2} placeholder="Brief description of what you built and its impact…" value={proj.description} onChange={e => updProj(proj.id, 'description', e.target.value)} />
+                      </div>
+                    </div>
+                  ))}
+                  <button className="btn-add" onClick={addProj}>+ Add Project</button>
+                </FormSection>
+              </div>
+            )}
+
+            {/* ── SKILLS TAB ── */}
+            {activeTab === 'skills' && (
+              <div>
+                <FormSection title="Core Skills" icon="⚡">
+                  <label className="form-label">Add Skills (press Enter)</label>
+                  <input className="form-input" type="text" placeholder="e.g. React, Python, AWS…" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={addSkill} />
+                  <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4, minHeight: 40 }}>
+                    {data.skills.map((s, i) => (
+                      <span className="skill-tag" key={i}>{s}<button onClick={() => removeSkill(s)}>×</button></span>
+                    ))}
+                    {data.skills.length === 0 && <span style={{ fontSize: 11, color: '#475569' }}>No skills yet. Type and press Enter to add.</span>}
+                  </div>
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6 }}>Quick add popular skills:</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {['JavaScript','TypeScript','React','Node.js','Python','Java','SQL','AWS','Docker','Git','Figma','Machine Learning'].filter(s => !data.skills.includes(s)).slice(0,8).map(s => (
+                        <button key={s} onClick={() => setData(p => ({ ...p, skills: [...p.skills, s] }))} style={{ background: '#1e293b', color: '#64748b', border: '1px solid #334155', borderRadius: 10, padding: '2px 8px', fontSize: 10, cursor: 'pointer' }}>{s}</button>
+                      ))}
+                    </div>
+                  </div>
+                </FormSection>
+
+                <FormSection title="Projects" icon="🚀">
+                  {data.projects.map((proj, idx) => (
+                    <div key={proj.id} style={{ marginBottom: 10, background: '#0a1628', borderRadius: 8, padding: 10, border: '1px solid #1e293b' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontSize: 11, color: '#818cf8', fontWeight: 700 }}>Project {idx + 1}</span>
+                        {data.projects.length > 1 && <button className="btn-danger" onClick={() => delProj(proj.id)}>✕</button>}
+                      </div>
+                      <div style={{ marginBottom: 6 }}>
+                        <label className="form-label">Project Title</label>
+                        <input className="form-input" type="text" placeholder="e.g. AI Chatbot" value={proj.title} onChange={e => updProj(proj.id, 'title', e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="form-label">Description</label>
+                        <textarea className="form-textarea" rows={2} placeholder="Describe what you built and its impact…" value={proj.description} onChange={e => updProj(proj.id, 'description', e.target.value)} />
+                      </div>
+                    </div>
+                  ))}
+                  <button className="btn-add" onClick={addProj}>+ Add Project</button>
+                </FormSection>
+              </div>
+            )}
+
+            {/* ── MAIL TAB ── */}
+            {activeTab === 'mail' && (
+              <div>
+                <div style={{ background: '#0a1628', borderRadius: 12, padding: 16, border: '1px solid #1e293b', marginBottom: 14 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>📧 Send Resume via Email</div>
+                  <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>Send your resume directly to HR/Employer from this page using EmailJS.</div>
+                </div>
+
+                <FormSection title="Receiver Details" icon="📮">
+                  <div style={{ marginBottom: 10 }}>
+                    <label className="form-label">Receiver's Email</label>
+                    <input className="form-input" type="email" placeholder="hr@company.com" value={receiverEmail} onChange={e => setReceiverEmail(e.target.value)} />
+                  </div>
+                  <div style={{ background: '#0f172a', borderRadius: 8, padding: 12, border: '1px solid #1e293b', marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 6, fontWeight: 600 }}>Resume Preview to be Sent:</div>
+                    <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.8 }}>
+                      <div><span style={{ color: '#94a3b8' }}>From:</span> {data.fullName || '—'}</div>
+                      <div><span style={{ color: '#94a3b8' }}>Title:</span> {data.jobTitle || '—'}</div>
+                      <div><span style={{ color: '#94a3b8' }}>Email:</span> {data.email || '—'}</div>
+                      <div><span style={{ color: '#94a3b8' }}>Phone:</span> {data.phone || '—'}</div>
+                      <div><span style={{ color: '#94a3b8' }}>Skills:</span> {data.skills.slice(0, 5).join(', ') || '—'}</div>
+                    </div>
+                  </div>
+                  <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={handleSendMail} disabled={sending}>
+                    {sending ? '⏳ Sending…' : '📤 Send Resume via Mail'}
+                  </button>
+                </FormSection>
+
+                <FormSection title="EmailJS Setup Guide" icon="⚙️" defaultOpen={false}>
+                  <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.8 }}>
+                    <div style={{ color: '#818cf8', fontWeight: 700, marginBottom: 6 }}>To enable email sending:</div>
+                    <div>1. Visit <span style={{ color: '#6ee7b7' }}>emailjs.com</span> and create a free account</div>
+                    <div>2. Create an Email Service (Gmail, Outlook, etc.)</div>
+                    <div>3. Create an Email Template with variables: {'{{to_email}}, {{from_name}}, {{summary}}'}</div>
+                    <div>4. Copy your Service ID, Template ID, and Public Key</div>
+                    <div>5. Replace <span style={{ color: '#fbbf24' }}>YOUR_SERVICE_ID</span>, <span style={{ color: '#fbbf24' }}>YOUR_TEMPLATE_ID</span>, and <span style={{ color: '#fbbf24' }}>YOUR_PUBLIC_KEY</span> in the source file</div>
+                  </div>
+                </FormSection>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ───── RIGHT PANEL (Preview) ───── */}
+        <div ref={previewContainerRef} className="right-panel" style={{ flex: 1, overflow: 'auto', background: '#0a0f1a', padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: 900, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }}/>
+              <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>LIVE PREVIEW</span>
+              <span style={{ fontSize: 10, color: '#334155', background: '#1e293b', borderRadius: 4, padding: '2px 8px' }}>{templateMeta.find(m => m.id === template)?.name}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn-secondary" style={{ fontSize: 11 }} onClick={handleDownload} disabled={downloading}>
+                {downloading ? '⏳' : '⬇'} Download PDF
+              </button>
+            </div>
+          </div>
+
+          {/* Preview */}
+          <div style={{ width: 794 * previewScale, minHeight: 1123 * previewScale, position: 'relative' }}>
+            <div ref={previewRef} className="preview-page" style={{ transform: `scale(${previewScale})`, transformOrigin: 'top left' }}>
+              <TemplateComp d={data} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Toast */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+      `}</style>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
